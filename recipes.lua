@@ -458,7 +458,7 @@ return {
         ['Loaf of Bread'] = {Location='Klen Ironstove',SourceType='Vendor'},
         ['Bear Meat'] = {Location='Klen Ironstove',SourceType='Vendor'},
         ['Brick of Ethereal Energy'] = {Location='Planes of Power',SourceType='Dropped'},
-        ['Black Nitrous Coal'] = {Location='Borik Darkanvil',SourceType='Vendor'},
+        ['Black Nitrous Coal'] = {Location='Zosran Hammertail',SourceType='Vendor'},
         ['Chainmail Collar Template Pattern'] = {Location='Borik Darkanvil',SourceType='Vendor'},
         ['Metal Tempering Chemicals'] = {Location='Zosran Hammertail',SourceType='Vendor'},
         ['Rhenium Ore'] = {Location='HC Low-Mid',SourceType='Dropped'},
