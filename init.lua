@@ -121,6 +121,64 @@ local function RecipeTreeNode(recipe, tradeskill, idx)
     end
 end
 
+local function drawSelectedRecipeBar(tradeskill)
+    if selectedRecipe then
+        ImGui.Text('Selected Recipe: ')
+        ImGui.SameLine()
+        ImGui.TextColored(1,1,0,1,'%s', selectedRecipe.Recipe)
+        if not buying.Status and not requesting.Status and not crafting.Status and not selling.Status then
+            if ImGui.Button('Craft') then
+                crafting.Status = true
+                crafting.OutOfMats = false
+                selectedTradeskill = tradeskill
+            end
+            ImGui.SameLine()
+            if ImGui.Button('Buy Mats') then
+                buying.Status = true
+            end
+            ImGui.SameLine()
+            if ImGui.Button('Request Mats') then
+                requesting.Status = true
+            end
+            ImGui.SameLine()
+            ImGui.PushItemWidth(250)
+            buying.Qty = ImGui.SliderInt('Qty', buying.Qty, 1, 1000)
+            ImGui.PopItemWidth()
+            ImGui.SameLine()
+            crafting.Destroy = ImGui.Checkbox('Destroy', crafting.Destroy)
+            ImGui.SameLine()
+            crafting.Fast = ImGui.Checkbox('Fast', crafting.Fast)
+            ImGui.SameLine()
+            crafting.StopAtTrivial = ImGui.Checkbox('Stop At Trivial', crafting.StopAtTrivial)
+            ImGui.SameLine()
+            if ImGui.Button('Sell') then
+                selling.Status = true
+            end
+            if crafting.FailedMessage then
+                ImGui.TextColored(1, 0, 0, 1, '%s', crafting.FailedMessage)
+            elseif crafting.SuccessMessage then
+                ImGui.TextColored(0, 1, 0, 1, '%s', crafting.SuccessMessage)
+            end
+        else
+            ImGui.PushStyleColor(ImGuiCol.Text, 1,0,0,1)
+            if ImGui.Button('Cancel') then
+                crafting.Status, selling.Status, buying.Status = false, false, false
+            end
+            ImGui.PopStyleColor()
+            ImGui.SameLine()
+            if crafting.Status then
+                ImGui.TextColored(0,1,0,1,'Crafting "%s" in progress... (%s/%s)', selectedRecipe.Recipe, crafting.NumMade, buying.Qty)
+                ImGui.SameLine()
+                crafting.Fast = ImGui.Checkbox('Fast', crafting.Fast)
+            elseif selling.Status then
+                ImGui.TextColored(0,1,0,1,'Selling "%s"', selectedRecipe.Recipe)
+            else
+                ImGui.TextColored(0,1,0,1,'Gathering Materials for "%s"...', selectedRecipe.Recipe)
+            end
+        end
+    end
+end
+
 local function pushStyle()
     local t = {
         windowbg = ImVec4(.1, .1, .1, .9),
@@ -158,7 +216,7 @@ local function popStyles()
     ImGui.PopStyleVar(1)
 end
 
-local tradeskills = {'Baking','Blacksmithing','Brewing','Fletching','Jewelry Making','Pottery','Tailoring','Radix'}
+local tradeskills = {'Baking','Blacksmithing','Brewing','Fletching','Jewelry Making','Pottery','Tailoring'}
 local function radixGUI()
     ImGui.SetNextWindowSize(ImVec2(800,500), ImGuiCond.FirstUseEver)
     pushStyle()
@@ -166,72 +224,34 @@ local function radixGUI()
     if shouldDrawGUI then
         if ImGui.BeginTabBar('##TradeskillTabs') then
             for _,tradeskill in ipairs(tradeskills) do
-                local currentSkill = mq.TLO.Me.Skill(tradeskill)() or 0
+                local currentSkill = (tradeskill == 'Radix' and 300) or mq.TLO.Me.Skill(tradeskill)() or 0
                 ImGui.PushStyleColor(ImGuiCol.Text, currentSkill == 300 and 0 or 1, currentSkill == 300 and 1 or 0, 0, 1)
-                local beginTab = ImGui.BeginTabItem(('%s (%s/300)###%s'):format(tradeskill, currentSkill, tradeskill))
+                local label
+                if tradeskill == 'Radix' then
+                    label = 'Radix'
+                elseif currentSkill == 300 then
+                    label = tradeskill .. '##' .. tradeskill
+                else
+                    label = ('%s (%s/300)###%s'):format(tradeskill, currentSkill, tradeskill)
+                end
+                local beginTab = ImGui.BeginTabItem(label)
                 ImGui.PopStyleColor()
                 if beginTab then
-                    if selectedRecipe then
-                        ImGui.Text('Selected Recipe: ')
-                        ImGui.SameLine()
-                        ImGui.TextColored(1,1,0,1,'%s', selectedRecipe.Recipe)
-                        if not buying.Status and not requesting.Status and not crafting.Status and not selling.Status then
-                            if ImGui.Button('Craft') then
-                                crafting.Status = true
-                                crafting.OutOfMats = false
-                                selectedTradeskill = tradeskill
-                            end
-                            ImGui.SameLine()
-                            if ImGui.Button('Buy Mats') then
-                                buying.Status = true
-                            end
-                            ImGui.SameLine()
-                            if ImGui.Button('Request Mats') then
-                                requesting.Status = true
-                            end
-                            ImGui.SameLine()
-                            ImGui.PushItemWidth(250)
-                            buying.Qty = ImGui.SliderInt('Qty', buying.Qty, 1, 1000)
-                            ImGui.PopItemWidth()
-                            ImGui.SameLine()
-                            crafting.Destroy = ImGui.Checkbox('Destroy', crafting.Destroy)
-                            ImGui.SameLine()
-                            crafting.Fast = ImGui.Checkbox('Fast', crafting.Fast)
-                            ImGui.SameLine()
-                            crafting.StopAtTrivial = ImGui.Checkbox('Stop At Trivial', crafting.StopAtTrivial)
-                            ImGui.SameLine()
-                            if ImGui.Button('Sell') then
-                                selling.Status = true
-                            end
-                            if crafting.FailedMessage then
-                                ImGui.TextColored(1, 0, 0, 1, '%s', crafting.FailedMessage)
-                            elseif crafting.SuccessMessage then
-                                ImGui.TextColored(0, 1, 0, 1, '%s', crafting.SuccessMessage)
-                            end
-                        else
-                            ImGui.PushStyleColor(ImGuiCol.Text, 1,0,0,1)
-                            if ImGui.Button('Cancel') then
-                                crafting.Status, selling.Status, buying.Status = false, false, false
-                            end
-                            ImGui.PopStyleColor()
-                            ImGui.SameLine()
-                            if crafting.Status then
-                                ImGui.TextColored(0,1,0,1,'Crafting "%s" in progress... (%s/%s)', selectedRecipe.Recipe, crafting.NumMade, buying.Qty)
-                                ImGui.SameLine()
-                                crafting.Fast = ImGui.Checkbox('Fast', crafting.Fast)
-                            elseif selling.Status then
-                                ImGui.TextColored(0,1,0,1,'Selling "%s"', selectedRecipe.Recipe)
-                            else
-                                ImGui.TextColored(0,1,0,1,'Gathering Materials for "%s"...', selectedRecipe.Recipe)
-                            end
-                        end
-                    end
+                    drawSelectedRecipeBar(tradeskill)
                     ImGui.Separator()
                     for _,recipe in ipairs(recipes[tradeskill]) do
                         RecipeTreeNode(recipe, currentSkill, 0)
                     end
                     ImGui.EndTabItem()
                 end
+            end
+            if ImGui.BeginTabItem('Radix') then
+                drawSelectedRecipeBar(tradeskill)
+                ImGui.Separator()
+                for _,recipe in ipairs(recipes.Radix) do
+                    RecipeTreeNode(recipe, 300, 0)
+                end
+                ImGui.EndTabItem()
             end
             if ImGui.BeginTabItem('Materials') then
                 ImGui.PushItemWidth(300)
