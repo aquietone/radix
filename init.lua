@@ -450,23 +450,19 @@ local function request()
     requesting.Status = false
 end
 
-local function waitForCursor()
-    mq.delay(1000, function() return mq.TLO.Cursor() end)
+local function waitForCursor(time)
+    mq.delay(time or 1000, function() return mq.TLO.Cursor() end)
 end
 
-local function waitForEmptyCursor()
-    mq.delay(1000, function() return not mq.TLO.Cursor() end)
+local function waitForEmptyCursor(time)
+    mq.delay(time or 1000, function() return not mq.TLO.Cursor() end)
 end
 
 local function clearCursor()
-    -- mq.delay(250)
-    while mq.TLO.Cursor() do
+    for i=1,5 do
+        waitForCursor(100)
         mq.cmd('/autoinv')
-        -- mq.delay(250)
-        mq.delay(1)
-        waitForEmptyCursor()
-        -- mq.delay(250)
-        mq.delay(1)
+        waitForEmptyCursor(100)
     end
 end
 
@@ -599,6 +595,7 @@ local function craftInTradeskillWindow(pack)
             return
         end
         if not crafting.Fast then
+            clearCursor()
             mq.delay(1000, function() return mq.TLO.Window('TradeskillWnd/CombineButton').Enabled() end)
         end
         if mq.TLO.Window('TradeskillWnd/CombineButton').Enabled() then
@@ -607,7 +604,12 @@ local function craftInTradeskillWindow(pack)
                 waitForCursor()
                 clearCursor()
                 mq.doevents()
-                if crafting.OutOfMats then break end
+                if crafting.OutOfMats and not mq.TLO.Cursor() then
+                    break
+                else
+                    clearCursor()
+                    crafting.OutOfMats = false
+                end
             else
                 mq.cmd('/autoinv')
                 mq.cmd('/autoinv')
