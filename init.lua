@@ -393,6 +393,7 @@ local function buy()
                 if mq.TLO.Window('MerchantWnd').Open() then mq.TLO.Window('MerchantWnd').DoClose() mq.delay(50) mq.cmdf('/mqt %s', mat.Location) end
                 if not goToVendor() then return end
                 if not openVendor() then return end
+                mq.delay(500)
             end
             printf('Buying %s', selectedRecipe.Container)
             RestockItems({[selectedRecipe.Container]=1})
@@ -409,7 +410,7 @@ local function buy()
                 if not goToVendor() then return end
                 if not openVendor() then return end
             end
-            mq.delay(100)
+            mq.delay(500)
             printf('Buying %s %s(s)', buying.Qty, material)
             RestockItems({[material]=buying.Qty}, mat.Tool)
         end
