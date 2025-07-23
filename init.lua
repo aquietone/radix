@@ -147,8 +147,8 @@ local function drawSelectedRecipeBar(tradeskill)
             ImGui.SameLine()
             crafting.Destroy = ImGui.Checkbox('Destroy', crafting.Destroy)
             ImGui.SameLine()
-            crafting.Fast = ImGui.Checkbox('Fast', crafting.Fast)
-            ImGui.SameLine()
+            -- crafting.Fast = ImGui.Checkbox('Fast', crafting.Fast)
+            -- ImGui.SameLine()
             crafting.StopAtTrivial = ImGui.Checkbox('Stop At Trivial', crafting.StopAtTrivial)
             ImGui.SameLine()
             if ImGui.Button('Sell') then
@@ -168,8 +168,8 @@ local function drawSelectedRecipeBar(tradeskill)
             ImGui.SameLine()
             if crafting.Status then
                 ImGui.TextColored(0,1,0,1,'Crafting "%s" in progress... (%s/%s)', selectedRecipe.Recipe, crafting.NumMade, buying.Qty)
-                ImGui.SameLine()
-                crafting.Fast = ImGui.Checkbox('Fast', crafting.Fast)
+                -- ImGui.SameLine()
+                -- crafting.Fast = ImGui.Checkbox('Fast', crafting.Fast)
             elseif selling.Status then
                 ImGui.TextColored(0,1,0,1,'Selling "%s"', selectedRecipe.Recipe)
             else
