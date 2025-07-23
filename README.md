@@ -7,6 +7,6 @@ Created this script to help max out tradeskills for the Project Lazarus Radix qu
 
 Clone/download repo contents to `/path/to/macroquest/lua/radix` and then `/lua run radix`.  
 
-Select a recipe under one of the tradeskill tabs and but the necessary materials, pick number of combines to perform and start crafting.  
+Select a recipe under one of the tradeskill tabs and buy the necessary materials, pick number of combines to perform and start crafting.  
 
 There are still some bugs in this, not finished yet. At worst, use it as a guide to maxing out tradeskills.  

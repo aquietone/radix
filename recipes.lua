@@ -23,7 +23,7 @@ return {
         {
             Recipe='Ethereal Metal Rings',
             Trivial=212,
-            Materials={'Brick of Ethereal Energy','Etheral Temper','File'},
+            Materials={'Brick of Ethereal Energy','Ethereal Temper','File'},
             Container='Forge',
         },
         {
@@ -361,7 +361,7 @@ return {
             Materials={'Water Flask','Spices','Jumjum Stalk','Bottle','Barley','Hops'},
             Container='Brew Barrel',
         },
-        ['Etheral Temper'] = {
+        ['Ethereal Temper'] = {
             Recipe='Ethereal Temper',
             Trivial=212,
             Materials={'Celestial Essence','Soda','Emerald Tea Leaf'},
@@ -534,7 +534,7 @@ return {
         ['Bottle'] = {Location='Brewmaster Berina',SourceType='Vendor'},
         ['Barley'] = {Location='Brewmaster Berina',SourceType='Vendor'},
         ['Hops'] = {Location='Brewmaster Berina',SourceType='Vendor'},
-        ['Soda'] = {Location='Brewmaster Berina',SourceType='Vendor'},
+        ['Soda'] = {Location='Caden Zharik',SourceType='Vendor'},
         ['Emerald Tea Leaf'] = {Location='Brewmaster Berina',SourceType='Vendor'},
         ['Enchanted Gold Bar'] = {Location='Enchanter',SourceType='Summoned'},
         ['Small Brick of Mithril'] = {Location='Merchant Niwiny',SourceType='Vendor',Zone='gfaydark'},

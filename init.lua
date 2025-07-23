@@ -2,12 +2,12 @@ local mq = require 'mq'
 require 'ImGui'
 local recipes = require 'recipes'
 
-local meta = {version='0.1',name='radix'}
+local meta = {version='0.2',name='radix'}
 
 local openGUI, shouldDrawGUI = true, true
 
 local ingredientsArray = {}
-local invSlotContainers = {['Fletching Kit'] = true, ['Jeweler\'s Kit'] = true, ['Mixing Bowl'] = true}
+local invSlotContainers = {['Fletching Kit'] = true, ['Jeweler\'s Kit'] = true, ['Mixing Bowl'] = true, ['Essence Fusion Chamber'] = true}
 
 local ingredientFilter = ''
 local filteredIngredients = {}
@@ -81,6 +81,8 @@ local crafting = {
     Status = false,
     StopAtTrivial = true,
     NumMade = 0,
+    SuccessMessage = nil,
+    FailedMessage = nil,
 }
 local selling = {
     Status = false
@@ -95,11 +97,13 @@ local function RecipeTreeNode(recipe, tradeskill, idx)
     else
         ImGui.PushStyleColor(ImGuiCol.Text, 1,1,1,1)
     end
-    local expanded = ImGui.TreeNode(('%s (Trivial: %s) (Qty: %s)###%s%s'):format(recipe.Recipe, recipe.Trivial, mq.TLO.FindItemCount(recipe.Recipe)(), recipe.Recipe, idx))
+    local expanded = ImGui.TreeNode(('%s (Trivial: %s) (Qty: %s)###%s%s'):format(recipe.Recipe, recipe.Trivial, mq.TLO.FindItemCount('='..recipe.Recipe)(), recipe.Recipe, idx))
     ImGui.PopStyleColor()
     ImGui.SameLine()
-    if ImGui.SmallButton('Select##'..recipe.Recipe) then
+    if ImGui.SmallButton('Select##'..recipe.Recipe..idx) then
         selectedRecipe = recipe
+        crafting.FailedMessage = nil
+        crafting.SuccessMessage = nil
     end
     if expanded then
         ImGui.Indent(15)
@@ -174,6 +178,7 @@ local function radixGUI()
                         if not buying.Status and not requesting.Status and not crafting.Status and not selling.Status then
                             if ImGui.Button('Craft') then
                                 crafting.Status = true
+                                crafting.OutOfMats = false
                                 selectedTradeskill = tradeskill
                             end
                             ImGui.SameLine()
@@ -197,6 +202,11 @@ local function radixGUI()
                             ImGui.SameLine()
                             if ImGui.Button('Sell') then
                                 selling.Status = true
+                            end
+                            if crafting.FailedMessage then
+                                ImGui.TextColored(1, 0, 0, 1, '%s', crafting.FailedMessage)
+                            elseif crafting.SuccessMessage then
+                                ImGui.TextColored(0, 1, 0, 1, '%s', crafting.SuccessMessage)
                             end
                         else
                             ImGui.PushStyleColor(ImGuiCol.Text, 1,0,0,1)
@@ -453,8 +463,10 @@ local function clearCursor()
     while mq.TLO.Cursor() do
         mq.cmd('/autoinv')
         -- mq.delay(250)
+        mq.delay(1)
         waitForEmptyCursor()
         -- mq.delay(250)
+        mq.delay(1)
     end
 end
 
@@ -474,8 +486,16 @@ end
 local function shouldCraft()
     if not selectedRecipe then printf('No recipe selected') return false end
     -- if selectedTradeskill and selectedRecipe.Trivial <= mq.TLO.Me.Skill(selectedTradeskill)() then printf('Skill already above trivial') return false end
-    if invSlotContainers[selectedRecipe.Container] and (mq.TLO.FindItemCount('='..selectedRecipe.Container)() == 0 or mq.TLO.FindItem('='..selectedRecipe.Container).ItemSlot2() ~= -1) then return false end
-    for _,mat in ipairs(selectedRecipe.Materials) do
+    if invSlotContainers[selectedRecipe.Container] and (mq.TLO.FindItemCount('='..selectedRecipe.Container)() == 0 or mq.TLO.FindItem('='..selectedRecipe.Container).ItemSlot2() ~= -1) then
+        printf('Recipe requires container in top level inventory slot: %s', selectedRecipe.Container)
+        crafting.FailedMessage = ('Recipe requires container in top level inventory slot: %s'):format(selectedRecipe.Container)
+        return false
+    end
+    local numMatsNeeded = {}
+    for _,mat in  ipairs(selectedRecipe.Materials) do
+        numMatsNeeded[mat] = numMatsNeeded[mat] and numMatsNeeded[mat] + 1 or 1
+    end
+    for mat,count in pairs(numMatsNeeded) do
         local matOrSubcombine = nil
         if recipes.Subcombines[mat] then
             matOrSubcombine = recipes.Subcombines[mat]
@@ -483,20 +503,24 @@ local function shouldCraft()
             matOrSubcombine = recipes.Materials[mat]
         else
             printf('Unknown component: %s', mat)
+            crafting.FailedMessage = ('Unknown component: %s'):format(mat)
             return false
         end
         if matOrSubcombine.Tool then
             if mq.TLO.FindItemCount('='..mat)() == 0 then
                 printf('Missing tool: %s', mat)
+                crafting.FailedMessage = ('Missing tool: %s'):format(mat)
                 return false
             end
         else
-            if mq.TLO.FindItemCount('='..mat)() < buying.Qty then
+            if mq.TLO.FindItemCount('='..mat)() < (buying.Qty*count) then
                 printf('Insufficient materials: %s', mat)
+                crafting.FailedMessage = ('Insufficient materials: %s'):format(mat)
                 return false
             end
         end
     end
+    crafting.FailedMessage = nil
     return true
 end
 
@@ -510,8 +534,14 @@ local function craftInExperimental(pack)
     crafting.NumMade = 0
     while crafting.NumMade < buying.Qty do
         if not crafting.Status then return end
-        if crafting.StopAtTrivial and mq.TLO.Me.Skill(selectedTradeskill or '')() >= selectedRecipe.Trivial then return end
-        if mq.TLO.Me.FreeInventory() == 0 then return end
+        if crafting.StopAtTrivial and mq.TLO.Me.Skill(selectedTradeskill or '')() >= selectedRecipe.Trivial then
+            crafting.SuccessMessage = 'Reached trivial for recipe!'
+            return
+        end
+        if mq.TLO.Me.FreeInventory() == 0 then
+            crafting.FailedMessage = 'Inventory is full!'
+            return
+        end
         clearCursor()
 
         -- Fill the container with materials
@@ -560,8 +590,14 @@ local function craftInTradeskillWindow(pack)
     crafting.NumMade = 0
     while crafting.NumMade < buying.Qty do
         if not crafting.Status then return end
-        if crafting.StopAtTrivial and mq.TLO.Me.Skill(selectedTradeskill or '')() >= selectedRecipe.Trivial then return end
-        if mq.TLO.Me.FreeInventory() == 0 then return end
+        if crafting.StopAtTrivial and mq.TLO.Me.Skill(selectedTradeskill or '')() >= selectedRecipe.Trivial then
+            crafting.SuccessMessage = 'Reached trivial for recipe!'
+            return
+        end
+        if mq.TLO.Me.FreeInventory() == 0 then
+            crafting.FailedMessage = 'Inventory is full!'
+            return
+        end
         if not crafting.Fast then
             mq.delay(1000, function() return mq.TLO.Window('TradeskillWnd/CombineButton').Enabled() end)
         end
@@ -570,6 +606,8 @@ local function craftInTradeskillWindow(pack)
             if not crafting.Fast then
                 waitForCursor()
                 clearCursor()
+                mq.doevents()
+                if crafting.OutOfMats then break end
             else
                 mq.cmd('/autoinv')
                 mq.cmd('/autoinv')
@@ -623,6 +661,7 @@ local function craftInInvSlot()
     mq.cmdf('/itemnotify "pack%s" rightmouseup', container_pack)
     mq.delay(10)
     craftInTradeskillWindow('pack'..container_pack)
+    clearCursor()
 end
 
 local function craftAtStation()
@@ -638,6 +677,7 @@ local function craftAtStation()
     mq.delay(500, function() return mq.TLO.Window('TradeskillWnd').Open() end)
     if not mq.TLO.Window('TradeskillWnd').Open() then return end
     craftInTradeskillWindow('Enviro')
+    clearCursor()
 end
 
 local function craft()
@@ -660,6 +700,7 @@ table.sort(ingredientsArray, function(a,b) return a.Name < b.Name end)
 
 mq.imgui.init('radix', radixGUI)
 
+mq.event('missingmaterial', '#*#You are missing a#*#', function() crafting.OutOfMats = true end)
 while true do
     if selectedRecipe then
         if buying.Status then
