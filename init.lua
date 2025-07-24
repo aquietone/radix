@@ -246,7 +246,7 @@ local function radixGUI()
                 end
             end
             if ImGui.BeginTabItem('Radix') then
-                drawSelectedRecipeBar(tradeskill)
+                drawSelectedRecipeBar('Blacksmithing')
                 ImGui.Separator()
                 for _,recipe in ipairs(recipes.Radix) do
                     RecipeTreeNode(recipe, 300, 0)
