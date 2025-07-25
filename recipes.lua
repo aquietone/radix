@@ -377,7 +377,7 @@ return {
             Recipe='Champagne Magnum',
             Trivial=196,
             Materials={'Opal','Enchanted Gold Bar','Bottle'},
-            Container='Brew Barrel',
+            Container='Jeweler\'s Kit',
         },
         ['Mithril Arrow Heads'] = {
             Recipe='Mithril Arrow Heads',

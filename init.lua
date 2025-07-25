@@ -154,12 +154,14 @@ local function drawSelectedRecipeBar(tradeskill)
             if ImGui.Button('Sell') then
                 selling.Status = true
             end
+            ImGui.Text('Free Inventory: %s', mq.TLO.Me.FreeInventory())
             if crafting.FailedMessage then
                 ImGui.TextColored(1, 0, 0, 1, '%s', crafting.FailedMessage)
             elseif crafting.SuccessMessage then
                 ImGui.TextColored(0, 1, 0, 1, '%s', crafting.SuccessMessage)
             end
         else
+            ImGui.Text('Free Inventory: %s', mq.TLO.Me.FreeInventory())
             ImGui.PushStyleColor(ImGuiCol.Text, 1,0,0,1)
             if ImGui.Button('Cancel') then
                 crafting.Status, selling.Status, buying.Status = false, false, false
@@ -400,7 +402,12 @@ local function buy()
             mq.TLO.Window('MerchantWnd').DoClose() mq.delay(250)
         end
     end
-    for _,material in ipairs(selectedRecipe.Materials) do
+    local numMatsNeeded = {}
+    for _,mat in  ipairs(selectedRecipe.Materials) do
+        numMatsNeeded[mat] = numMatsNeeded[mat] and numMatsNeeded[mat] + 1 or 1
+    end
+    for material,count in pairs(numMatsNeeded) do
+    -- for _,material in ipairs(selectedRecipe.Materials) do
         local mat = recipes.Materials[material]
         if mat and mat.SourceType == 'Vendor' and not mat.Zone then
             if not buying.Status then return end
@@ -411,8 +418,8 @@ local function buy()
                 if not openVendor() then return end
             end
             mq.delay(500)
-            printf('Buying %s %s(s)', buying.Qty, material)
-            RestockItems({[material]=buying.Qty}, mat.Tool)
+            printf('Buying %s %s(s)', buying.Qty*count, material)
+            RestockItems({[material]=buying.Qty*count}, mat.Tool)
         end
     end
     if mq.TLO.Window('MerchantWnd').Open() then mq.TLO.Window('MerchantWnd').DoClose() end
@@ -479,11 +486,14 @@ local function waitForEmptyCursor(time)
     mq.delay(time or 1000, function() return not mq.TLO.Cursor() end)
 end
 
-local function clearCursor()
-    for i=1,5 do
+local function clearCursor(num)
+    local upper = num or 5
+    for i=1,upper do
         waitForCursor(100)
-        mq.cmd('/autoinv')
-        waitForEmptyCursor(100)
+        if mq.TLO.Cursor() then
+            mq.cmd('/autoinv')
+            waitForEmptyCursor(100)
+        end
     end
 end
 
@@ -559,10 +569,11 @@ local function craftInExperimental(pack)
             crafting.FailedMessage = 'Inventory is full!'
             return
         end
-        clearCursor()
+        clearCursor(#selectedRecipe.Materials)
 
         -- Fill the container with materials
         for i,mat in ipairs(selectedRecipe.Materials) do
+            if mq.TLO.Cursor() then clearCursor() end
             mq.cmdf('/nomodkey /ctrlkey /itemnotify "%s" leftmouseup', mat)
             waitForCursor()
             if pack == 'Enviro' then
