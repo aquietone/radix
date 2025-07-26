@@ -133,6 +133,13 @@ local function drawSelectedRecipeBar(tradeskill)
                 selectedTradeskill = selectedRecipe.Tradeskill or tradeskill
             end
             ImGui.SameLine()
+            if ImGui.Button('Craft All') then
+                crafting.Status = true
+                crafting.OutOfMats = false
+                selectedTradeskill = selectedRecipe.Tradeskill or tradeskill
+                buying.Qty = -1
+            end
+            ImGui.SameLine()
             if ImGui.Button('Buy Mats') then
                 buying.Status = true
             end
@@ -523,6 +530,7 @@ local function shouldCraft()
     for _,mat in  ipairs(selectedRecipe.Materials) do
         numMatsNeeded[mat] = numMatsNeeded[mat] and numMatsNeeded[mat] + 1 or 1
     end
+    local maxCombines = 1000
     for mat,count in pairs(numMatsNeeded) do
         local matOrSubcombine = nil
         if recipes.Subcombines[mat] then
@@ -541,13 +549,18 @@ local function shouldCraft()
                 return false
             end
         else
-            if mq.TLO.FindItemCount('='..mat)() < (buying.Qty*count) then
+            if buying.Qty == -1 then
+                local numCombines = mq.TLO.FindItemCount('='..mat)() / count
+                maxCombines = math.min(numCombines, maxCombines)
+            elseif mq.TLO.FindItemCount('='..mat)() < (buying.Qty*count) then
                 printf('Insufficient materials: %s', mat)
                 crafting.FailedMessage = ('Insufficient materials: %s'):format(mat)
                 return false
             end
         end
     end
+    if maxCombines == 0 then buying.Qty = 1 return false end
+    if buying.Qty == -1 then buying.Qty = maxCombines or 1 end
     crafting.FailedMessage = nil
     return true
 end
@@ -624,7 +637,7 @@ local function craftInTradeskillWindow(pack)
     crafting.NumMade = 0
     while crafting.NumMade < buying.Qty do
         if not crafting.Status then return end
-        if crafting.StopAtTrivial and mq.TLO.Me.Skill(selectedTradeskill or '')() >= selectedRecipe.Trivial then
+        if crafting.StopAtTrivial and (mq.TLO.Me.Skill(selectedTradeskill or '')() >= selectedRecipe.Trivial or  or mq.TLO.Me.Skill(selectedTradeskill or '')() == 300) then
             crafting.SuccessMessage = 'Reached trivial for recipe!'
             return
         end
@@ -723,7 +736,6 @@ end
 
 local function craft()
     if not selectedRecipe or not shouldCraft() then crafting.Status = false return end
-    printf(selectedRecipe.Container)
     if recipes.Stations[selectedRecipe.Container] then
         craftAtStation()
     elseif invSlotContainers[selectedRecipe.Container] then
