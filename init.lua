@@ -7,7 +7,7 @@ local meta = {version='0.2',name='radix'}
 local openGUI, shouldDrawGUI = true, true
 
 local ingredientsArray = {}
-local invSlotContainers = {['Fletching Kit'] = true, ['Feir`Dal Fletching Kit'] = true, ['Jeweler\'s Kit'] = true, ['Mixing Bowl'] = true, ['Essence Fusion Chamber'] = true}
+local invSlotContainers = {['Fletching Kit'] = true, ['Feir`Dal Fletching Kit'] = true, ['Jeweler\'s Kit'] = true, ['Mixing Bowl'] = true, ['Essence Fusion Chamber'] = true, ['Medicine Bag'] = true}
 
 local ingredientFilter = ''
 local filteredIngredients = {}
@@ -218,7 +218,7 @@ local function popStyles()
     ImGui.PopStyleVar(1)
 end
 
-local tradeskills = {'Baking','Blacksmithing','Brewing','Fletching','Jewelry Making','Pottery','Tailoring'}
+local tradeskills = {'Baking','Blacksmithing','Brewing','Fletching','Jewelry Making','Pottery','Tailoring','Alchemy'}
 local function radixGUI()
     ImGui.SetNextWindowSize(ImVec2(800,500), ImGuiCond.FirstUseEver)
     pushStyle()
@@ -226,25 +226,27 @@ local function radixGUI()
     if shouldDrawGUI then
         if ImGui.BeginTabBar('##TradeskillTabs') then
             for _,tradeskill in ipairs(tradeskills) do
-                local currentSkill = (tradeskill == 'Radix' and 300) or mq.TLO.Me.Skill(tradeskill)() or 0
-                ImGui.PushStyleColor(ImGuiCol.Text, currentSkill == 300 and 0 or 1, currentSkill == 300 and 1 or 0, 0, 1)
-                local label
-                if tradeskill == 'Radix' then
-                    label = 'Radix'
-                elseif currentSkill == 300 then
-                    label = tradeskill .. '##' .. tradeskill
-                else
-                    label = ('%s (%s/300)###%s'):format(tradeskill, currentSkill, tradeskill)
-                end
-                local beginTab = ImGui.BeginTabItem(label)
-                ImGui.PopStyleColor()
-                if beginTab then
-                    drawSelectedRecipeBar(tradeskill)
-                    ImGui.Separator()
-                    for _,recipe in ipairs(recipes[tradeskill]) do
-                        RecipeTreeNode(recipe, currentSkill, 0)
+                if tradeskill ~= 'Alchemy' or mq.TLO.Me.Class.ShortName() == 'SHM' then
+                    local currentSkill = (tradeskill == 'Radix' and 300) or mq.TLO.Me.Skill(tradeskill)() or 0
+                    ImGui.PushStyleColor(ImGuiCol.Text, currentSkill == 300 and 0 or 1, currentSkill == 300 and 1 or 0, 0, 1)
+                    local label
+                    if tradeskill == 'Radix' then
+                        label = 'Radix'
+                    elseif currentSkill == 300 then
+                        label = tradeskill .. '##' .. tradeskill
+                    else
+                        label = ('%s (%s/300)###%s'):format(tradeskill, currentSkill, tradeskill)
                     end
-                    ImGui.EndTabItem()
+                    local beginTab = ImGui.BeginTabItem(label)
+                    ImGui.PopStyleColor()
+                    if beginTab then
+                        drawSelectedRecipeBar(tradeskill)
+                        ImGui.Separator()
+                        for _,recipe in ipairs(recipes[tradeskill]) do
+                            RecipeTreeNode(recipe, currentSkill, 0)
+                        end
+                        ImGui.EndTabItem()
+                    end
                 end
             end
             if ImGui.BeginTabItem('Radix') then
@@ -560,7 +562,7 @@ local function craftInExperimental(pack)
     crafting.NumMade = 0
     while crafting.NumMade < buying.Qty do
         if not crafting.Status then return end
-        if crafting.StopAtTrivial and mq.TLO.Me.Skill(selectedTradeskill or '')() >= selectedRecipe.Trivial then
+        if crafting.StopAtTrivial and (mq.TLO.Me.Skill(selectedTradeskill or '')() >= selectedRecipe.Trivial or mq.TLO.Me.Skill(selectedTradeskill or '')() == 300) then
             crafting.SuccessMessage = 'Reached trivial for recipe!'
             return
         end

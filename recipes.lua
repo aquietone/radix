@@ -155,7 +155,7 @@ return {
         {
             Recipe='Velium Blue Diamond Bracelet',
             Trivial=302,
-            Materials={'Blue Diamond','Velium Bar'},
+            Materials={'Blue Diamond','Enchanted Velium Bar'},
             Container='Jeweler\'s Kit',
         },
     },
@@ -204,6 +204,20 @@ return {
             Materials={'Excellent Silk','Excellent Silk','Fine Filament','Silk Curing Chemicals','Silk Wristband Template Pattern','Simple Sewing Needle'},
             Container='Loom',
         },
+    },
+    ['Alchemy'] = {
+        {
+            Recipe='Elixir of Greater Concentration',
+            Trivial=244,
+            Materials={'Duskglow Vine','Violet Tri-Tube Sap'},
+            Container='Medicine Bag',
+        },
+        {
+            Recipe='Distillate of Divine Healing X',
+            Trivial=348,
+            Materials={'Nodding Blue Lily','Hemlock Powder','Tregrum','Small Vial','Small Vial','Small Vial','Small Vial','Small Vial'},
+            Container='Medicine Bag',
+        }
     },
     ['Radix']  = {
         {
@@ -530,7 +544,7 @@ return {
         ['Sapphire'] = {Location='Elemental+',SourceType='Dropped'},
         ['Diamond'] = {Location='Elemental+',SourceType='Dropped'},
         ['Blue Diamond'] = {Location='Elemental+',SourceType='Dropped'},
-        ['Velium Bar'] = {Location='Talem Tucter',SourceType='Vendor',Zone='thurgadina'},
+        ['Enchanted Velium Bar'] = {Location='Talem Tucter',SourceType='Vendor',Zone='thurgadina'},
         ['Crow\'s Special Brew'] = {Location='Sculptor Radee',SourceType='Vendor'},
         ['Sealed Vial Sketch'] = {Location='Sculptor Radee',SourceType='Vendor'},
         ['Small Block of Clay'] = {Location='Sculptor Radee',SourceType='Vendor'},
@@ -580,8 +594,15 @@ return {
         ['Concentrated Celestial Solvent'] = {Location='Darius Gandril',SourceType='Vendor',Zone='poknowledge'},
         ['The Scent of Marr'] = {Location='Toxicologist Huey',SourceType='Vendor'},
         ['File Mold'] = {Location='Borik Darkanvil',SourceType='Vendor'},
+        ['Duskglow Vine'] = {Location='Alchemist Redsa',SourceType='Vendor'},
+        ['Violet Tri-Tube Sap'] = {Location='Alchemist Redsa',SourceType='Vendor'},
+        ['Tregrum'] = {Location='Alchemist Redsa',SourceType='Vendor'},
+        ['Nodding Blue Lily']={Location='HC zones',SourceType='Dropped'},
+        ['Small Vial']={Location='Alchemist Redsa',SourceType='Vendor'},
+        ['Hemlock Powder']={Location='Alchemist Redsa',SourceType='Vendor'},
         ['Fletching Kit'] = {Location='Fletcher Lenvale',SourceType='Vendor',Container=true},
         ['Jeweler\'s Kit'] = {Location='Audri Deepfacet',SourceType='Vendor',Container=true},
+        ['Medicine Bag'] = {Location='Alchemist Redsa',SourceType='Vendor',Container=true},
     },
     ['Stations'] = {
         ['Pottery Wheel'] = '646 -68 -52',
