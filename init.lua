@@ -7,7 +7,7 @@ local meta = {version='0.2',name='radix'}
 local openGUI, shouldDrawGUI = true, true
 
 local ingredientsArray = {}
-local invSlotContainers = {['Fletching Kit'] = true, ['Jeweler\'s Kit'] = true, ['Mixing Bowl'] = true, ['Essence Fusion Chamber'] = true}
+local invSlotContainers = {['Fletching Kit'] = true, ['Feir`Dal Fletching Kit'] = true, ['Jeweler\'s Kit'] = true, ['Mixing Bowl'] = true, ['Essence Fusion Chamber'] = true}
 
 local ingredientFilter = ''
 local filteredIngredients = {}
@@ -130,7 +130,7 @@ local function drawSelectedRecipeBar(tradeskill)
             if ImGui.Button('Craft') then
                 crafting.Status = true
                 crafting.OutOfMats = false
-                selectedTradeskill = tradeskill
+                selectedTradeskill = selectedRecipe.Tradeskill or tradeskill
             end
             ImGui.SameLine()
             if ImGui.Button('Buy Mats') then
@@ -350,14 +350,13 @@ local function sellToVendor(itemToSell, bag, slot)
         else
             mq.cmdf('/nomodkey /itemnotify in pack%s %s leftmouseup', bag, slot)
         end
-        mq.delay(1000, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell end)
+        mq.delay(1000, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell() end)
         mq.cmd('/nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup')
         mq.doevents('eventNovalue')
         if itemNoValue == itemToSell then
             itemNoValue = nil
         end
-        -- TODO: handle vendor not wanting item / item can't be sold
-        mq.delay(1000, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == '' end)
+        mq.delay(1000, function() return mq.TLO.Window("MerchantWnd/MW_Sell_Button")() ~= "TRUE" end)
     end
 end
 
@@ -655,9 +654,9 @@ end
 
 local function craftInInvSlot()
     if not selectedRecipe then return end
-    if mq.TLO.Window('TradeskillWnd').Open() and mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(selectedRecipe.Recipe)() then
-        craftInTradeskillWindow()
-        return
+    if mq.TLO.Window('TradeskillWnd').Open() then
+            craftInTradeskillWindow()
+            return
     end
     local container_pack = -1
     local container_item = mq.TLO.FindItem('='..selectedRecipe.Container)
@@ -692,6 +691,7 @@ local function craftInInvSlot()
             mq.cmdf('/keypress CLOSE_INV_BAGS')
         end
     end
+    if mq.TLO.Window('pack'..container_pack)() then mq.cmdf('/keypress CLOSE_INV_BAGS') mq.delay(1) mq.delay(100) end
     mq.cmdf('/itemnotify "pack%s" rightmouseup', container_pack)
     mq.delay(10)
     craftInTradeskillWindow('pack'..container_pack)
@@ -716,6 +716,7 @@ end
 
 local function craft()
     if not selectedRecipe or not shouldCraft() then crafting.Status = false return end
+    printf(selectedRecipe.Container)
     if recipes.Stations[selectedRecipe.Container] then
         craftAtStation()
     elseif invSlotContainers[selectedRecipe.Container] then
