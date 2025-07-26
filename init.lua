@@ -637,7 +637,7 @@ local function craftInTradeskillWindow(pack)
     crafting.NumMade = 0
     while crafting.NumMade < buying.Qty do
         if not crafting.Status then return end
-        if crafting.StopAtTrivial and (mq.TLO.Me.Skill(selectedTradeskill or '')() >= selectedRecipe.Trivial or  or mq.TLO.Me.Skill(selectedTradeskill or '')() == 300) then
+        if crafting.StopAtTrivial and (mq.TLO.Me.Skill(selectedTradeskill or '')() >= selectedRecipe.Trivial or mq.TLO.Me.Skill(selectedTradeskill or '')() == 300) then
             crafting.SuccessMessage = 'Reached trivial for recipe!'
             return
         end
