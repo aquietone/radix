@@ -595,14 +595,15 @@ end
 
 local function craftInTradeskillWindow(pack)
     if not selectedRecipe then return end
-    if not mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(selectedRecipe.Recipe)() then
+    local recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(selectedRecipe.Recipe)()
+    if not recipeExists then
         mq.cmd('/nomodkey /notify TradeskillWnd COMBW_SearchTextEdit leftmouseup')
         mq.delay(50)
         mq.TLO.Window('TradeskillWnd/COMBW_SearchTextEdit').SetText(selectedRecipe.Recipe)()
         mq.delay(50)
         mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').Select(selectedRecipe.Recipe)()
         mq.delay(200)
-        local recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(selectedRecipe.Recipe)()
+        recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(selectedRecipe.Recipe)()
         if not recipeExists then
             mq.delay(30000, function() return mq.TLO.Window('TradeskillWnd/COMBW_SearchButton').Enabled() end)
             mq.cmd('/nomodkey /notify TradeskillWnd COMBW_SearchButton leftmouseup')
@@ -615,6 +616,10 @@ local function craftInTradeskillWindow(pack)
                 return
             end
         end
+    end
+    if selectedTradeskill == 'Jewelry Making' and mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeExists+1)() == selectedRecipe.Recipe then
+        -- JC special case for enchanted bars
+        mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').Select(recipeExists+1)()
     end
     crafting.NumMade = 0
     while crafting.NumMade < buying.Qty do

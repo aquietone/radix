@@ -155,7 +155,7 @@ return {
         {
             Recipe='Velium Blue Diamond Bracelet',
             Trivial=302,
-            Materials={'Blue Diamond','Enchanted Velium Bar'},
+            Materials={'Blue Diamond','Velium Bar'},
             Container='Jeweler\'s Kit',
         },
     },
@@ -189,7 +189,7 @@ return {
         {
             Recipe='Ethereal Silk Swatch',
             Trivial=212,
-            Materials={'Ethereal Curing Agent','Strand of Ether'},
+            Materials={'Ethereal Curing Agent','Strand of Ether','Strand of Ether'},
             Container='Loom',
         },
         {
@@ -234,6 +234,7 @@ return {
         },
     },
     ['Subcombines'] = {
+        -- Radix
         ['Elemental Forging Temper'] = {
             Recipe='Elemental Forging Temper',
             Trivial=400,
@@ -263,6 +264,7 @@ return {
             Tradeskill='Blacksmithing',
         },
 
+        -- Baking
         ['Non-Stick Frying Pan'] = {
             Recipe='Non-Stick Frying Pan',
             Trivial=91,
@@ -398,6 +400,14 @@ return {
             Container='Brew Barrel',
             Tradeskill='Brewing',
         },
+        ['Vegetables'] = {
+            Recipe='Vegetables',
+            Trivial=15,
+            Materials={'Lettuce','Carrot','Turnip'},
+            Container='Mixing Bowl',
+            Tradeskill='Baking',
+        },
+        -- Blacksmithing
         ['Ethereal Temper'] = {
             Recipe='Ethereal Temper',
             Trivial=212,
@@ -412,6 +422,7 @@ return {
             Container='Brew Barrel',
             Tradeskill='Brewing',
         },
+        -- Brewing
         ['Champagne Magnum'] = {
             Recipe='Champagne Magnum',
             Trivial=196,
@@ -419,6 +430,7 @@ return {
             Container='Jeweler\'s Kit',
             Tradeskill='Jewelry Making',
         },
+        -- Fletching
         ['Mithril Arrow Heads'] = {
             Recipe='Mithril Arrow Heads',
             Trivial=42,
@@ -440,19 +452,37 @@ return {
             Container='Feir`Dal Fletching Kit',
             Tradeskill='Fletching',
         },
+        ['Mithril Working Knife'] = {
+            Recipe='Mithril Working Knife',
+            Trivial=42,
+            Materials={'Small Brick of Mithril','Hilt Mold','Water Flask','Dagger Blade Mold'},
+            Container='Feir`Dal Forge',
+            Tradeskill='Blacksmithing',
+            Tool=true,
+        },
+        -- Tailoring
+        ['Ethereal Curing Agent'] = {
+            Recipe='Ethereal Curing Agent',
+            Trivial=212,
+            Materials={'Celestial Essence','Celestial Essence','Soda','Packet of Paeala Sap'},
+            Container='Brew Barrel',
+            Tradeskill='Brewing',
+        },
+        -- Pottery
+        ['Lacquered Star Ruby'] = {
+            Recipe='Lacquered Star Ruby',
+            Trivial=128,
+            Materials={'Jar of Lacquer','Star Ruby'},
+            Container='Jeweler\'s Kit',
+            Tradeskill='Jewelry Making',
+        },
+        -- General
         ['Celestial Essence'] = {
             Recipe='Celestial Essence',
             Trivial=15,
             Materials={'Concentrated Celestial Solvent','The Scent of Marr','The Scent of Marr','The Scent of Marr'},
             Container='Mixing Bowl',
             Tradeskill='Baking',
-        },
-        ['Ethereal Curing Agent'] = {
-            Recipe='Ethereal Curing Agent',
-            Trivial=212,
-            Materials={'Celestial Essence','Celestial Essence','Soda','Packet of Paeala Sap'},
-            Container='Brew Barrel',
-            Tradeskill='Pottery',
         },
         ['File'] = {
             Recipe='File',
@@ -462,30 +492,9 @@ return {
             Tradeskill='Blacksmithing',
             Tool=true,
         },
-        ['Lacquered Star Ruby'] = {
-            Recipe='Lacquered Star Ruby',
-            Trivial=128,
-            Materials={'Jar of Lacquer','Star Ruby'},
-            Container='Jeweler\'s Kit',
-            Tradeskill='Jewelry Making',
-        },
-        ['Vegetables'] = {
-            Recipe='Vegetables',
-            Trivial=15,
-            Materials={'Lettuce','Carrot','Turnip'},
-            Container='Mixing Bowl',
-            Tradeskill='Baking',
-        },
-        ['Mithril Working Knife'] = {
-            Recipe='Mithril Working Knife',
-            Trivial=42,
-            Materials={'Small Brick of Mithril','Hilt Mold','Water Flask','Dagger Blade Mold'},
-            Container='Feir`Dal Forge',
-            Tradeskill='Blacksmithing',
-            Tool=true,
-        },
     },
     ['Materials'] = {
+        -- Radix
         ['Air Mephit Blood']={Location='PoAir',SourceType='Dropped'},
         ['Earth Mephit Blood']={Location='PoEarth',SourceType='Dropped'},
         ['Fire Mephit Blood']={Location='PoFire',SourceType='Dropped'},
@@ -497,15 +506,17 @@ return {
         ['Primal Essence of Air']={Location='Quest',SourceType='Quest'},
         ['Primal Essence of Earth']={Location='Drosal',SourceType='Quest'},
         ['Primal Essence of Water']={Location='Drosal',SourceType='Quest'},
-
+        -- Tools
         ['Smithy Hammer'] = {Location='Borik Darkanvil',SourceType='Vendor',Tool=true},
         ['Sculpting Tools'] = {Location='Sculptor Radee',SourceType='Vendor',Tool=true},
         ['Simple Sewing Needle'] = {Location='Sherin Matrick',SourceType='Vendor',Tool=true},
+        -- Baking
         ['Fresh Fish'] = {Location='Klen Ironstove',SourceType='Vendor'},
         ['Bat Wing'] = {Location='Darius Gandril',SourceType='Vendor',Zone='poknowledge'},
         ['Cheese'] = {Location='Klen Ironstove',SourceType='Vendor'},
         ['Loaf of Bread'] = {Location='Klen Ironstove',SourceType='Vendor'},
         ['Bear Meat'] = {Location='Klen Ironstove',SourceType='Vendor'},
+        -- Blacksmithing
         ['Brick of Ethereal Energy'] = {Location='Planes of Power',SourceType='Dropped'},
         ['Black Nitrous Coal'] = {Location='Zosran Hammertail',SourceType='Vendor'},
         ['Chainmail Collar Template Pattern'] = {Location='Borik Darkanvil',SourceType='Vendor'},
@@ -514,6 +525,7 @@ return {
         ['Lustrous Black Coal'] = {Location='Borik Darkanvil',SourceType='Vendor'},
         ['Tungsten Ore'] = {Location='HC Mid-High',SourceType='Dropped'},
         ['Water Flask'] = {Location='Klen Ironstove',SourceType='Vendor'},
+        -- Brewing
         ['Fishing Grubs'] = {Location='Caden Zharik',SourceType='Vendor'},
         ['Short Beer'] = {Location='Brewmaster Berina',SourceType='Vendor'},
         ['Malt'] = {Location='Brewmaster Berina',SourceType='Vendor'},
@@ -521,6 +533,7 @@ return {
         ['Yeast'] = {Location='Brewmaster Berina',SourceType='Vendor'},
         ['Grapes'] = {Location='Brewmaster Berina',SourceType='Vendor'},
         ['Wine Yeast'] = {Location='Brewmaster Berina',SourceType='Vendor'},
+        -- Fletching
         ['Large Groove Nocks'] = {Location='Fletcher Lenvale',SourceType='Vendor'},
         ['Bundled Wooden Arrow Shafts'] = {Location='Fletcher Lenvale',SourceType='Vendor'},
         ['Field Point Arrowheads'] = {Location='Fletcher Lenvale',SourceType='Vendor'},
@@ -529,22 +542,28 @@ return {
         ['Arrow Shaft Mold'] = {Location='Fletcher Lenvale',SourceType='Vendor'},
         ['Small Brick of Mithril'] = {Location='Merchant Niwiny',SourceType='Vendor',Zone='gfaydark'},
         ['Large Brick of Mithril'] = {Location='Merchant Niwiny',SourceType='Vendor',Zone='gfaydark'},
+        -- Jewelry Making
         ['Malachite'] = {Location='Audri Deepfacet',SourceType='Vendor'},
-        ['Electrum Bar'] = {Location='Audri Deepfacet',SourceType='Vendor'},
         ['Pearl'] = {Location='Audri Deepfacet',SourceType='Vendor'},
-        ['Gold Bar'] = {Location='Audri Deepfacet',SourceType='Vendor'},
         ['Topaz'] = {Location='Audri Deepfacet',SourceType='Vendor'},
         ['Opal'] = {Location='Audri Deepfacet',SourceType='Vendor'},
         ['Fire Emerald'] = {Location='Elemental+',SourceType='Dropped'},
         ['Cat\'s Eye Agate'] = {Location='Audri Deepfacet',SourceType='Vendor'},
-        ['Platinum Bar'] = {Location='Audri Deepfacet',SourceType='Vendor'},
         ['Amber'] = {Location='Audri Deepfacet',SourceType='Vendor'},
         ['Fire Opal'] = {Location='Audri Deepfacet',SourceType='Vendor'},
         ['Star Ruby'] = {Location='Elemental+',SourceType='Dropped'},
         ['Sapphire'] = {Location='Elemental+',SourceType='Dropped'},
         ['Diamond'] = {Location='Elemental+',SourceType='Dropped'},
         ['Blue Diamond'] = {Location='Elemental+',SourceType='Dropped'},
-        ['Enchanted Velium Bar'] = {Location='Talem Tucter',SourceType='Vendor',Zone='thurgadina'},
+        ['Electrum Bar'] = {Location='Audri Deepfacet',SourceType='Vendor'},
+        ['Gold Bar'] = {Location='Audri Deepfacet',SourceType='Vendor'},
+        ['Platinum Bar'] = {Location='Audri Deepfacet',SourceType='Vendor'},
+        ['Velium Bar'] = {Location='Talem Tucter',SourceType='Vendor',Zone='thurgadina'},
+        ['Enchanted Electrum Bar'] = {Location='Enchanter',SourceType='Summoned'},
+        ['Enchanted Gold Bar'] = {Location='Enchanter',SourceType='Summoned'},
+        ['Enchanted Platinum Bar'] = {Location='Enchanter',SourceType='Summoned'},
+        ['Enchanted Velium Bar'] = {Location='Enchanter',SourceType='Summoned'},
+        -- Pottery
         ['Crow\'s Special Brew'] = {Location='Sculptor Radee',SourceType='Vendor'},
         ['Sealed Vial Sketch'] = {Location='Sculptor Radee',SourceType='Vendor'},
         ['Small Block of Clay'] = {Location='Sculptor Radee',SourceType='Vendor'},
@@ -555,6 +574,8 @@ return {
         ['Imbued Emerald'] = {Location='Tunare Deity',SourceType='Summoned'},
         ['Ceramic Lining Sketch'] = {Location='Sculptor Radee',SourceType='Vendor'},
         ['Jar of Lacquer'] = {Location='Audri Deepfacet',SourceType='Vendor'},
+        -- Tailoring
+        ['Packet of Paeala Sap'] = {Location='Brewmaster Berina',SourceType='Vendor'},
         ['Strand of Ether'] = {Location='Planes',SourceType='Dropped'},
         ['Fine Silk'] = {Location='HC Low-Mid',SourceType='Dropped'},
         ['Soft Filament'] = {Location='Sherin Matrick',SourceType='Vendor'},
@@ -562,6 +583,7 @@ return {
         ['Silk Wristband Template Pattern'] = {Location='Sherin Matrick',SourceType='Vendor'},
         ['Excellent Silk'] = {Location='HC Mid-High',SourceType='Dropped'},
         ['Fine Filament'] = {Location='Sherin Matrick',SourceType='Vendor'},
+        -- Picnics
         ['Frying Pan Mold'] = {Location='Roghur Muleson',SourceType='Vendor',Zone='freeporteast'},
         ['Small Piece of Ore'] = {Location='Sculptor Radee',SourceType='Vendor'},
         ['Quality Firing Sheet'] = {Location='Sculptor Radee',SourceType='Vendor'},
@@ -588,18 +610,20 @@ return {
         ['Hops'] = {Location='Brewmaster Berina',SourceType='Vendor'},
         ['Soda'] = {Location='Caden Zharik',SourceType='Vendor'},
         ['Emerald Tea Leaf'] = {Location='Brewmaster Berina',SourceType='Vendor'},
-        ['Enchanted Gold Bar'] = {Location='Enchanter',SourceType='Summoned'},
         ['Hilt Mold'] = {Location='Borik Darkanvil',SourceType='Vendor'},
-        ['Dagger Blade Mold'] = {Location='Borik Darkanvil',SourceType='Vendor'},
-        ['Concentrated Celestial Solvent'] = {Location='Darius Gandril',SourceType='Vendor',Zone='poknowledge'},
-        ['The Scent of Marr'] = {Location='Toxicologist Huey',SourceType='Vendor'},
         ['File Mold'] = {Location='Borik Darkanvil',SourceType='Vendor'},
+        ['Dagger Blade Mold'] = {Location='Borik Darkanvil',SourceType='Vendor'},
+        -- Alchemy
         ['Duskglow Vine'] = {Location='Alchemist Redsa',SourceType='Vendor'},
         ['Violet Tri-Tube Sap'] = {Location='Alchemist Redsa',SourceType='Vendor'},
         ['Tregrum'] = {Location='Alchemist Redsa',SourceType='Vendor'},
         ['Nodding Blue Lily']={Location='HC zones',SourceType='Dropped'},
         ['Small Vial']={Location='Alchemist Redsa',SourceType='Vendor'},
         ['Hemlock Powder']={Location='Alchemist Redsa',SourceType='Vendor'},
+        -- General
+        ['Concentrated Celestial Solvent'] = {Location='Darius Gandril',SourceType='Vendor',Zone='poknowledge'},
+        ['The Scent of Marr'] = {Location='Toxicologist Huey',SourceType='Vendor'},
+        -- Containers
         ['Fletching Kit'] = {Location='Fletcher Lenvale',SourceType='Vendor',Container=true},
         ['Jeweler\'s Kit'] = {Location='Audri Deepfacet',SourceType='Vendor',Container=true},
         ['Medicine Bag'] = {Location='Alchemist Redsa',SourceType='Vendor',Container=true},
