@@ -721,7 +721,7 @@ end
 local function craftAtStation()
     if not selectedRecipe then return end
     printf('Moving to crafting station')
-    mq.cmdf('/nav loc '..recipes.Stations[selectedRecipe.Container]..' log=off')
+    mq.cmdf('/nav loc '..recipes.Stations[mq.TLO.Zone.ShortName()][selectedRecipe.Container]..' log=off')
     mq.delay(250)
     mq.delay(30000, function() return not mq.TLO.Navigation.Active() end)
     printf('Opening crafting station')
@@ -736,7 +736,7 @@ end
 
 local function craft()
     if not selectedRecipe or not shouldCraft() then crafting.Status = false return end
-    if recipes.Stations[selectedRecipe.Container] then
+    if recipes.Stations[mq.TLO.Zone.ShortName()] and recipes.Stations[mq.TLO.Zone.ShortName()][selectedRecipe.Container] then
         craftAtStation()
     elseif invSlotContainers[selectedRecipe.Container] then
         craftInInvSlot()

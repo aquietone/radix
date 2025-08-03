@@ -629,12 +629,24 @@ return {
         ['Medicine Bag'] = {Location='Alchemist Redsa',SourceType='Vendor',Container=true},
     },
     ['Stations'] = {
-        ['Pottery Wheel'] = '646 -68 -52',
-        ['Kiln'] = '585 -62 -52',
-        ['Oven'] = '584 66 -52',
-        ['Forge'] = '802 55 -52',
-        ['Loom'] = '650 64 -52',
-        ['Brew Barrel'] = '800 -53 -52',
-        ['Feir`Dal Forge'] = '-245 61 118',
+        ['poknowledge'] = {
+            ['Pottery Wheel'] = '-288.50 780.29 -91.34',
+            ['Kiln'] = '-346.99 796.83 -91.34',
+            ['Oven'] = '-346.22 775.99 -91.34',
+            ['Forge'] = '343.74 760.84 -91.34',
+            ['Loom'] = '-337.39 924.73 -91.78',
+            ['Brew Barrel'] = '-315.00 969.43 -91.89',
+        },
+        ['freeporttemple'] = {
+            ['Pottery Wheel'] = '646 -68 -52',
+            ['Kiln'] = '585 -62 -52',
+            ['Oven'] = '584 66 -52',
+            ['Forge'] = '802 55 -52',
+            ['Loom'] = '650 64 -52',
+            ['Brew Barrel'] = '800 -53 -52',
+        },
+        ['gfaydark'] = {
+            ['Feir`Dal Forge'] = '-245 61 118',
+        },
     }
 }
