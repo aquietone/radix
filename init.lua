@@ -417,7 +417,7 @@ local function buy()
     for material,count in pairs(numMatsNeeded) do
     -- for _,material in ipairs(selectedRecipe.Materials) do
         local mat = recipes.Materials[material]
-        if mat and mat.SourceType == 'Vendor' and not mat.Zone then
+        if mat and mat.SourceType == 'Vendor' and (not mat.Zone or mq.TLO.Zone.ShortName() == mat.Zone) then
             if not buying.Status then return end
             mq.cmdf('/mqt %s', mat.Location)
             if not mq.TLO.Window('MerchantWnd').Open() or mq.TLO.Window('MerchantWnd/MW_MerchantName').Text() ~= mat.Location then
