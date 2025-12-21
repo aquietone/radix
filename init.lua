@@ -2,7 +2,7 @@ local mq = require 'mq'
 require 'ImGui'
 local recipes = require 'recipes'
 
-local meta = {version='0.2',name='radix'}
+local meta = {version='0.3',name='radix'}
 
 local openGUI, shouldDrawGUI = true, true
 
@@ -128,16 +128,26 @@ local function drawSelectedRecipeBar(tradeskill)
         ImGui.TextColored(1,1,0,1,'%s', selectedRecipe.Recipe)
         if not buying.Status and not requesting.Status and not crafting.Status and not selling.Status then
             if ImGui.Button('Craft') then
-                crafting.Status = true
-                crafting.OutOfMats = false
-                selectedTradeskill = selectedRecipe.Tradeskill or tradeskill
+                if (tradeskill == 'Alchemy') and mq.TLO.Me.Skill(tradeskill)() == 0 then
+                    crafting.Status = false
+                    crafting.FailedMessage = 'Train at least 1 point in '..tradeskill..' first!'
+                else
+                    crafting.Status = true
+                    crafting.OutOfMats = false
+                    selectedTradeskill = selectedRecipe.Tradeskill or tradeskill
+                end
             end
             ImGui.SameLine()
             if ImGui.Button('Craft All') then
-                crafting.Status = true
-                crafting.OutOfMats = false
-                selectedTradeskill = selectedRecipe.Tradeskill or tradeskill
-                buying.Qty = -1
+                if (tradeskill == 'Alchemy') and mq.TLO.Me.Skill(tradeskill)() == 0 then
+                    crafting.Status = false
+                    crafting.FailedMessage = 'Train at least 1 point in '..tradeskill..' first!'
+                else
+                    crafting.Status = true
+                    crafting.OutOfMats = false
+                    selectedTradeskill = selectedRecipe.Tradeskill or tradeskill
+                    buying.Qty = -1
+                end
             end
             ImGui.SameLine()
             if ImGui.Button('Buy Mats') then
@@ -148,8 +158,8 @@ local function drawSelectedRecipeBar(tradeskill)
                 requesting.Status = true
             end
             ImGui.SameLine()
-            ImGui.PushItemWidth(250)
-            buying.Qty = ImGui.SliderInt('Qty', buying.Qty, 1, 1000)
+            ImGui.PushItemWidth(120)
+            buying.Qty = ImGui.InputInt('Qty', buying.Qty, 1, 10)
             ImGui.PopItemWidth()
             ImGui.SameLine()
             crafting.Destroy = ImGui.Checkbox('Destroy', crafting.Destroy)
@@ -729,6 +739,8 @@ local function craftAtStation()
     mq.delay(5)
     mq.cmd('/click left item')
     mq.delay(500, function() return mq.TLO.Window('TradeskillWnd').Open() end)
+    mq.doevents('inuse')
+    if not crafting.Status then return end
     if not mq.TLO.Window('TradeskillWnd').Open() then return end
     craftInTradeskillWindow('Enviro')
     clearCursor()
@@ -755,6 +767,12 @@ table.sort(ingredientsArray, function(a,b) return a.Name < b.Name end)
 mq.imgui.init('radix', radixGUI)
 
 mq.event('missingmaterial', '#*#You are missing a#*#', function() crafting.OutOfMats = true end)
+mq.event('inuse', '#*#Someone else is using that#*#', function()
+    crafting.Status = false
+    crafting.FailedMessage = 'Crafting station already in use!'
+    printf('Crafting station already in use!')
+end)
+
 while true do
     if selectedRecipe then
         if buying.Status then
