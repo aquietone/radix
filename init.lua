@@ -69,6 +69,7 @@ end
 
 local selectedTradeskill = nil
 local selectedRecipe = nil
+local thingsToCraft = {}
 local buying = {
     Recipe = '',
     Qty = 1000,
@@ -83,6 +84,7 @@ local crafting = {
     NumMade = 0,
     SuccessMessage = nil,
     FailedMessage = nil,
+    DoSubcombines = false,
 }
 local selling = {
     Status = false
@@ -135,6 +137,7 @@ local function drawSelectedRecipeBar(tradeskill)
                     crafting.Status = true
                     crafting.OutOfMats = false
                     selectedTradeskill = selectedRecipe.Tradeskill or tradeskill
+                    thingsToCraft = {}
                 end
             end
             ImGui.SameLine()
@@ -147,6 +150,7 @@ local function drawSelectedRecipeBar(tradeskill)
                     crafting.OutOfMats = false
                     selectedTradeskill = selectedRecipe.Tradeskill or tradeskill
                     buying.Qty = -1
+                    thingsToCraft = {}
                 end
             end
             ImGui.SameLine()
@@ -167,6 +171,8 @@ local function drawSelectedRecipeBar(tradeskill)
             -- crafting.Fast = ImGui.Checkbox('Fast', crafting.Fast)
             -- ImGui.SameLine()
             crafting.StopAtTrivial = ImGui.Checkbox('Stop At Trivial', crafting.StopAtTrivial)
+            ImGui.SameLine()
+            crafting.DoSubcombines = ImGui.Checkbox('Craft Subcombines', crafting.DoSubcombines)
             ImGui.SameLine()
             if ImGui.Button('Sell') then
                 selling.Status = true
@@ -528,6 +534,7 @@ local function findOpenSlot(skip_slot)
     end
 end
 
+local tempStopAtTriv = false
 local function shouldCraft()
     if not selectedRecipe then printf('No recipe selected') return false end
     -- if selectedTradeskill and selectedRecipe.Trivial <= mq.TLO.Me.Skill(selectedTradeskill)() then printf('Skill already above trivial') return false end
@@ -563,9 +570,23 @@ local function shouldCraft()
                 local numCombines = mq.TLO.FindItemCount('='..mat)() / count
                 maxCombines = math.min(numCombines, maxCombines)
             elseif mq.TLO.FindItemCount('='..mat)() < (buying.Qty*count) then
-                printf('Insufficient materials: %s', mat)
-                crafting.FailedMessage = ('Insufficient materials: %s'):format(mat)
-                return false
+                if crafting.DoSubcombines and recipes.Subcombines[mat] then
+                    table.insert(thingsToCraft, selectedRecipe)
+                    tempStopAtTriv = tempStopAtTriv or crafting.StopAtTrivial
+                    crafting.StopAtTrivial = false
+                    local tmpSelected = selectedRecipe
+                    selectedRecipe = recipes.Subcombines[mat]
+                    if not shouldCraft() then
+                        printf('Insufficient materials: %s', mat)
+                        crafting.FailedMessage = ('Insufficient materials: %s'):format(mat)
+                        selectedRecipe = tmpSelected
+                        return false
+                    end
+                else
+                    printf('Insufficient materials: %s', mat)
+                    crafting.FailedMessage = ('Insufficient materials: %s'):format(mat)
+                    return false
+                end
             end
         end
     end
@@ -756,7 +777,6 @@ local function craft()
         -- special cases, feir`dal for mithril, etc.
     end
     clearCursor()
-    crafting.Status = false
 end
 
 for name,ingredient in pairs(recipes.Materials) do
@@ -783,6 +803,13 @@ while true do
             request()
         elseif crafting.Status then
             craft()
+            for i=#thingsToCraft, 1, -1 do
+                selectedRecipe = thingsToCraft[i]
+                if i == 1 then crafting.StopAtTrivial = tempStopAtTriv end
+                craft()
+            end
+            crafting.Status = false
+            thingsToCraft = {}
         end
     end
     mq.delay(1000)

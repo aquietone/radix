@@ -332,7 +332,7 @@ return {
         ['Jumjum Cake'] = {
             Recipe='Jumjum Cake',
             Trivial=166,
-            Materials={'Clump of Duogh','Jumjum Stalk','Cake Round','Winter Chocolate','Frosting'},
+            Materials={'Clump of Dough','Jumjum Stalk','Cake Round','Winter Chocolate','Frosting'},
             Container='Oven',
             Tradeskill='Baking',
         },
