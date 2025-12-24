@@ -265,8 +265,10 @@ local function radixGUI()
                     if beginTab then
                         drawSelectedRecipeBar(tradeskill)
                         ImGui.Separator()
-                        for _,recipe in ipairs(recipes[tradeskill]) do
+                        for i,recipe in ipairs(recipes[tradeskill]) do
+                            ImGui.PushID(i)
                             RecipeTreeNode(recipe, currentSkill, 0)
+                            ImGui.PopID()
                         end
                         ImGui.EndTabItem()
                     end
@@ -391,21 +393,24 @@ local function RestockItems(BuyItems, isTool)
         rowNum = mq.TLO.Window("MerchantWnd/MW_ItemList").List('='..itemName,2)() or 0
         mq.delay(20)
         local haveCount = mq.TLO.FindItemCount('='..itemName)()
-        if isTool and haveCount >= 1 then return end
-        local tmpQty = qty - haveCount
-        if rowNum ~= 0 and tmpQty > 0 then
-            mq.TLO.Window("MerchantWnd/MW_ItemList").Select(rowNum)()
-            mq.delay(1000, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemName end)
-            mq.TLO.Window("MerchantWnd/MW_Buy_Button").LeftMouseUp()
-            mq.delay(500, function () return mq.TLO.Window("QuantityWnd").Open() end)
-            if mq.TLO.Window("QuantityWnd").Open() then
-                mq.TLO.Window("QuantityWnd/QTYW_SliderInput").SetText(tostring(tmpQty))()
-                mq.delay(100, function () return mq.TLO.Window("QuantityWnd/QTYW_SliderInput").Text() == tostring(tmpQty) end)
-                mq.TLO.Window("QuantityWnd/QTYW_Accept_Button").LeftMouseUp()
-                mq.delay(100)
+        while haveCount < qty do
+            if isTool and haveCount >= 1 then return end
+            local tmpQty = qty - haveCount
+            if rowNum ~= 0 and tmpQty > 0 then
+                mq.TLO.Window("MerchantWnd/MW_ItemList").Select(rowNum)()
+                mq.delay(1000, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemName end)
+                mq.TLO.Window("MerchantWnd/MW_Buy_Button").LeftMouseUp()
+                mq.delay(500, function () return mq.TLO.Window("QuantityWnd").Open() end)
+                if mq.TLO.Window("QuantityWnd").Open() then
+                    mq.TLO.Window("QuantityWnd/QTYW_SliderInput").SetText(tostring(tmpQty))()
+                    mq.delay(100, function () return mq.TLO.Window("QuantityWnd/QTYW_SliderInput").Text() == tostring(tmpQty) end)
+                    mq.TLO.Window("QuantityWnd/QTYW_Accept_Button").LeftMouseUp()
+                    mq.delay(100)
+                end
             end
+            mq.delay(500, function () return mq.TLO.FindItemCount('='..itemName)() >= qty end)
+            haveCount = mq.TLO.FindItemCount('='..itemName)()
         end
-        mq.delay(500, function () return mq.TLO.FindItemCount('='..itemName)() >= qty end)
     end
 end
 
@@ -440,8 +445,8 @@ local function buy()
                 if mq.TLO.Window('MerchantWnd').Open() then mq.TLO.Window('MerchantWnd').DoClose() mq.delay(50) mq.cmdf('/mqt %s', mat.Location) end
                 if not goToVendor() then return end
                 if not openVendor() then return end
+                mq.delay(500)
             end
-            mq.delay(500)
             printf('Buying %s %s(s)', buying.Qty*count, material)
             RestockItems({[material]=buying.Qty*count}, mat.Tool)
         end
@@ -515,7 +520,12 @@ local function clearCursor(num)
     for i=1,upper do
         waitForCursor(100)
         if mq.TLO.Cursor() then
-            mq.cmd('/autoinv')
+            if crafting.Destroy and selectedRecipe and (mq.TLO.Cursor.Name() == selectedRecipe.OutputName or mq.TLO.Cursor.Name() == selectedRecipe.Recipe) then
+                printf('Destroying cursor item: %s', selectedRecipe.OutputName and selectedRecipe.OutputName or selectedRecipe.Recipe)
+                mq.cmd('/destroy')
+            else
+                mq.cmd('/autoinv')
+            end
             waitForEmptyCursor(100)
         end
     end
@@ -598,7 +608,9 @@ end
 
 local function craftInExperimental(pack)
     if not selectedRecipe then return end
-    mq.cmd('/notify TradeskillWnd COMBW_ExperimentButton leftmouseup')
+    if not mq.TLO.Window(pack).Open() and mq.TLO.Window('TradeskillWnd').Open() then
+        mq.cmd('/notify TradeskillWnd COMBW_ExperimentButton leftmouseup')
+    end
     -- do combines
     printf('Crafting items')
     mq.cmdf('/keypress OPEN_INV_BAGS')
@@ -621,6 +633,10 @@ local function craftInExperimental(pack)
             if mq.TLO.Cursor() then clearCursor() end
             mq.cmdf('/nomodkey /ctrlkey /itemnotify "%s" leftmouseup', mat)
             waitForCursor()
+            if (mq.TLO.Cursor.Stack() or 1) > 1 then
+                clearCursor()
+                mq.cmdf('/nomodkey /ctrlkey /itemnotify "%s" leftmouseup', mat)
+            end
             if pack == 'Enviro' then
                 if mq.TLO.Cursor() then mq.cmdf('/itemnotify enviro%s leftmouseup', i) end
             else
@@ -639,29 +655,30 @@ end
 
 local function craftInTradeskillWindow(pack)
     if not selectedRecipe then return end
-    local recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(selectedRecipe.Recipe)()
+    local recipeName = selectedRecipe.OutputName and selectedRecipe.OutputName or selectedRecipe.Recipe
+    local recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeName)()
     if not recipeExists then
         mq.cmd('/nomodkey /notify TradeskillWnd COMBW_SearchTextEdit leftmouseup')
         mq.delay(50)
-        mq.TLO.Window('TradeskillWnd/COMBW_SearchTextEdit').SetText(selectedRecipe.Recipe)()
+        mq.TLO.Window('TradeskillWnd/COMBW_SearchTextEdit').SetText(recipeName)()
         mq.delay(50)
-        mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').Select(selectedRecipe.Recipe)()
+        mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').Select(recipeName)()
         mq.delay(200)
-        recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(selectedRecipe.Recipe)()
+        recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeName)()
         if not recipeExists then
             mq.delay(30000, function() return mq.TLO.Window('TradeskillWnd/COMBW_SearchButton').Enabled() end)
             mq.cmd('/nomodkey /notify TradeskillWnd COMBW_SearchButton leftmouseup')
             mq.delay(1000)
-            mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').Select(selectedRecipe.Recipe)()
+            mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').Select(recipeName)()
             mq.delay(500)
-            recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(selectedRecipe.Recipe)()
+            recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeName)()
             if not recipeExists then
                 craftInExperimental(pack)
                 return
             end
         end
     end
-    if selectedTradeskill == 'Jewelry Making' and mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeExists+1)() == selectedRecipe.Recipe then
+    if selectedTradeskill == 'Jewelry Making' and mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeExists+1)() == recipeName then
         -- JC special case for enchanted bars
         mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').Select(recipeExists+1)()
     end
@@ -687,6 +704,9 @@ local function craftInTradeskillWindow(pack)
                 clearCursor()
                 mq.doevents()
                 if crafting.OutOfMats and not mq.TLO.Cursor() then
+                    if crafting.NumMade == 0 and mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeExists+1)() then
+                        crafting.FailedMessage = 'Multiple recipe options, select the correct one and try again.'
+                    end
                     break
                 else
                     clearCursor()
@@ -706,8 +726,8 @@ end
 local function craftInInvSlot()
     if not selectedRecipe then return end
     if mq.TLO.Window('TradeskillWnd').Open() then
-            craftInTradeskillWindow()
-            return
+        craftInTradeskillWindow()
+        return
     end
     local container_pack = -1
     local container_item = mq.TLO.FindItem('='..selectedRecipe.Container)
@@ -770,7 +790,11 @@ end
 local function craft()
     if not selectedRecipe or not shouldCraft() then crafting.Status = false return end
     if recipes.Stations[mq.TLO.Zone.ShortName()] and recipes.Stations[mq.TLO.Zone.ShortName()][selectedRecipe.Container] then
-        craftAtStation()
+        if mq.TLO.Window('Enviro').Open() then
+            craftInExperimental('Enviro')
+        else
+            craftAtStation()
+        end
     elseif invSlotContainers[selectedRecipe.Container] then
         craftInInvSlot()
     else
