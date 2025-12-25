@@ -99,7 +99,8 @@ local function RecipeTreeNode(recipe, tradeskill, idx)
     else
         ImGui.PushStyleColor(ImGuiCol.Text, 1,1,1,1)
     end
-    local expanded = ImGui.TreeNode(('%s (Trivial: %s) (Qty: %s)###%s%s'):format(recipe.Recipe, recipe.Trivial, mq.TLO.FindItemCount('='..recipe.Recipe)(), recipe.Recipe, idx))
+    local recipeName = ('%s%s'):format(recipe.Recipe, recipe.Variant and ' ('..recipe.Variant..')' or '')
+    local expanded = ImGui.TreeNode(('%s (Trivial: %s) (Qty: %s)###%s%s'):format(recipeName, recipe.Trivial, mq.TLO.FindItemCount('='..recipe.Recipe)(), recipe.Recipe, idx))
     ImGui.PopStyleColor()
     ImGui.SameLine()
     if ImGui.SmallButton('Select##'..recipe.Recipe..idx) then
@@ -140,6 +141,13 @@ local function drawSelectedRecipeBar(tradeskill)
                     thingsToCraft = {}
                 end
             end
+            if ImGui.IsItemHovered() then
+                ImGui.BeginTooltip()
+                ImGui.PushTextWrapPos(300)
+                ImGui.Text('Craft the number of combines specified in Qty. Must have the required number of components for <Qty> combines.')
+                ImGui.PopTextWrapPos()
+                ImGui.EndTooltip()
+            end
             ImGui.SameLine()
             if ImGui.Button('Craft All') then
                 if (tradeskill == 'Alchemy') and mq.TLO.Me.Skill(tradeskill)() == 0 then
@@ -153,29 +161,85 @@ local function drawSelectedRecipeBar(tradeskill)
                     thingsToCraft = {}
                 end
             end
+            if ImGui.IsItemHovered() then
+                ImGui.BeginTooltip()
+                ImGui.PushTextWrapPos(300)
+                ImGui.Text('Craft as many of the selected item as possible based on current materials.')
+                ImGui.PopTextWrapPos()
+                ImGui.EndTooltip()
+            end
             ImGui.SameLine()
             if ImGui.Button('Buy Mats') then
                 buying.Status = true
+            end
+            if ImGui.IsItemHovered() then
+                ImGui.BeginTooltip()
+                ImGui.PushTextWrapPos(300)
+                ImGui.Text('Buy the number of materials required in order to attempt <Qty> combines.')
+                ImGui.PopTextWrapPos()
+                ImGui.EndTooltip()
             end
             ImGui.SameLine()
             if ImGui.Button('Request Mats') then
                 requesting.Status = true
             end
+            if ImGui.IsItemHovered() then
+                ImGui.BeginTooltip()
+                ImGui.PushTextWrapPos(300)
+                ImGui.Text('Request materials from other toons via DanNet for the selected recipe. (Barely tested)')
+                ImGui.PopTextWrapPos()
+                ImGui.EndTooltip()
+            end
             ImGui.SameLine()
             ImGui.PushItemWidth(120)
             buying.Qty = ImGui.InputInt('Qty', buying.Qty, 1, 10)
             ImGui.PopItemWidth()
+            if ImGui.IsItemHovered() then
+                ImGui.BeginTooltip()
+                ImGui.PushTextWrapPos(300)
+                ImGui.Text('The number of combines to attempt / buy materials for.')
+                ImGui.PopTextWrapPos()
+                ImGui.EndTooltip()
+            end
             ImGui.SameLine()
             crafting.Destroy = ImGui.Checkbox('Destroy', crafting.Destroy)
+            if ImGui.IsItemHovered() then
+                ImGui.BeginTooltip()
+                ImGui.PushTextWrapPos(300)
+                ImGui.Text('Automatically destroy combine result after each combine. Useful for pottery Unfired Idol and Steins.')
+                ImGui.PopTextWrapPos()
+                ImGui.EndTooltip()
+            end
             ImGui.SameLine()
             -- crafting.Fast = ImGui.Checkbox('Fast', crafting.Fast)
             -- ImGui.SameLine()
             crafting.StopAtTrivial = ImGui.Checkbox('Stop At Trivial', crafting.StopAtTrivial)
+            if ImGui.IsItemHovered() then
+                ImGui.BeginTooltip()
+                ImGui.PushTextWrapPos(300)
+                ImGui.Text('Stop crafting the selected recipe once its trivial is reached.')
+                ImGui.PopTextWrapPos()
+                ImGui.EndTooltip()
+            end
             ImGui.SameLine()
             crafting.DoSubcombines = ImGui.Checkbox('Craft Subcombines', crafting.DoSubcombines)
+            if ImGui.IsItemHovered() then
+                ImGui.BeginTooltip()
+                ImGui.PushTextWrapPos(300)
+                ImGui.Text('If the selected recipe has subcombines, craft them as well if you have the materials.')
+                ImGui.PopTextWrapPos()
+                ImGui.EndTooltip()
+            end
             ImGui.SameLine()
             if ImGui.Button('Sell') then
                 selling.Status = true
+            end
+            if ImGui.IsItemHovered() then
+                ImGui.BeginTooltip()
+                ImGui.PushTextWrapPos(300)
+                ImGui.Text('Sell the currently selected recipe results.')
+                ImGui.PopTextWrapPos()
+                ImGui.EndTooltip()
             end
             ImGui.Text('Free Inventory: %s', mq.TLO.Me.FreeInventory())
             if crafting.FailedMessage then
@@ -547,11 +611,16 @@ end
 local tempStopAtTriv = false
 local function shouldCraft()
     if not selectedRecipe then printf('No recipe selected') return false end
-    -- if selectedTradeskill and selectedRecipe.Trivial <= mq.TLO.Me.Skill(selectedTradeskill)() then printf('Skill already above trivial') return false end
-    if invSlotContainers[selectedRecipe.Container] and (mq.TLO.FindItemCount('='..selectedRecipe.Container)() == 0 or mq.TLO.FindItem('='..selectedRecipe.Container).ItemSlot2() ~= -1) then
-        printf('Recipe requires container in top level inventory slot: %s', selectedRecipe.Container)
-        crafting.FailedMessage = ('Recipe requires container in top level inventory slot: %s'):format(selectedRecipe.Container)
-        return false
+    if invSlotContainers[selectedRecipe.Container] then
+        local found = false
+        for i=23,32,1 do
+            if mq.TLO.Me.Inventory(i)() == selectedRecipe.Container then found = true end
+        end
+        if not found then
+            printf('Recipe requires container in top level inventory slot: %s', selectedRecipe.Container)
+            crafting.FailedMessage = ('Recipe requires container in top level inventory slot: %s'):format(selectedRecipe.Container)
+            return false
+        end
     end
     local numMatsNeeded = {}
     for _,mat in  ipairs(selectedRecipe.Materials) do
@@ -606,7 +675,9 @@ local function shouldCraft()
     return true
 end
 
-local function craftInExperimental(pack)
+local invSlotContainerPack = nil
+local invSlotContainerPackIdx = -1
+local function craftInExperimental(pack, packIdx)
     if not selectedRecipe then return end
     if not mq.TLO.Window(pack).Open() and mq.TLO.Window('TradeskillWnd').Open() then
         mq.cmd('/notify TradeskillWnd COMBW_ExperimentButton leftmouseup')
@@ -628,6 +699,11 @@ local function craftInExperimental(pack)
         end
         clearCursor(#selectedRecipe.Materials)
 
+        if (pack == 'Enviro' and mq.TLO.InvSlot('Enviro').Item.Item(1)()) or mq.TLO.Me.Inventory(packIdx+22).Item(1)() then
+            crafting.FailedMessage = 'Crafting container contains unexpected items!'
+            return
+        end
+
         -- Fill the container with materials
         for i,mat in ipairs(selectedRecipe.Materials) do
             if mq.TLO.Cursor() then clearCursor() end
@@ -643,6 +719,10 @@ local function craftInExperimental(pack)
                 if mq.TLO.Cursor() then mq.cmdf('/itemnotify in %s %s leftmouseup', pack, i) end
             end
             waitForEmptyCursor()
+            if (pack == 'Enviro' and (mq.TLO.InvSlot('Enviro').Item.Item(i).Stack() or 1) > 1) or (mq.TLO.Me.Inventory(packIdx+22).Item(i).Stack() or 1) > 1 then
+                crafting.FailedMessage = 'Crafting container contains unexpected items!'
+                return
+            end
         end
 
         -- Perform the combine
@@ -653,7 +733,7 @@ local function craftInExperimental(pack)
     end
 end
 
-local function craftInTradeskillWindow(pack)
+local function craftInTradeskillWindow(pack, packIdx)
     if not selectedRecipe then return end
     local recipeName = selectedRecipe.OutputName and selectedRecipe.OutputName or selectedRecipe.Recipe
     local recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeName)()
@@ -673,14 +753,14 @@ local function craftInTradeskillWindow(pack)
             mq.delay(500)
             recipeExists = mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeName)()
             if not recipeExists then
-                craftInExperimental(pack)
+                craftInExperimental(pack, packIdx)
                 return
             end
         end
     end
-    if selectedTradeskill == 'Jewelry Making' and mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeExists+1)() == recipeName then
-        -- JC special case for enchanted bars
-        mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').Select(recipeExists+1)()
+    if recipeExists then craftInExperimental(pack, packIdx) return end
+    if selectedRecipe.RecipeIndexOffset and mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').List(recipeExists+selectedRecipe.RecipeIndexOffset)() == recipeName then
+        mq.TLO.Window('TradeskillWnd/COMBW_RecipeList').Select(recipeExists+selectedRecipe.RecipeIndexOffset)()
     end
     crafting.NumMade = 0
     while crafting.NumMade < buying.Qty do
@@ -726,30 +806,40 @@ end
 local function craftInInvSlot()
     if not selectedRecipe then return end
     if mq.TLO.Window('TradeskillWnd').Open() then
-        craftInTradeskillWindow()
+        craftInTradeskillWindow(invSlotContainerPack, invSlotContainerPackIdx)
         return
     end
     local container_pack = -1
-    local container_item = mq.TLO.FindItem('='..selectedRecipe.Container)
-    if container_item.ItemSlot2() ~= -1 then
+    local container_item = nil
+    for i=23,32,1 do
+        if mq.TLO.Me.Inventory(i)() == selectedRecipe.Container then
+            container_pack = i - 22
+            container_item = mq.TLO.Me.Inventory(i)
+            break
+        end
+    end
+    if container_pack == -1 or container_item == nil then
         -- move container to top level inventory slot
         mq.cmdf('/nomodkey /ctrlkey /itemnotify "%s" leftmouseup', selectedRecipe.Container)
         waitForCursor()
         clearCursor()
 
-        container_item = mq.TLO.FindItem('='..selectedRecipe)
+        for i=23,32,1 do
+            if mq.TLO.Me.Inventory(i)() == selectedRecipe.Container then
+                container_pack = i - 22
+                container_item = mq.TLO.Me.Inventory(i)
+                break
+            end
+        end
         -- container still not in top level slot
-        if container_item.ItemSlot2() ~= -1 then
+        if container_pack == -1 or container_item == nil then
             printf('No top level inventory slot available for container')
             return
         end
-        container_pack = container_item.ItemSlot() - 22
     else
-        container_pack = container_item.ItemSlot() - 22
-
+        mq.cmdf('/keypress OPEN_INV_BAGS')
         -- container must be empty
         if container_item.Items() > 0 then
-            mq.cmdf('/keypress OPEN_INV_BAGS')
             for i=0,container_item.Container() do
                 if container_item.Item(i)() then
                     local new_location = findOpenSlot(container_pack+22)
@@ -765,7 +855,9 @@ local function craftInInvSlot()
     if mq.TLO.Window('pack'..container_pack)() then mq.cmdf('/keypress CLOSE_INV_BAGS') mq.delay(1) mq.delay(100) end
     mq.cmdf('/itemnotify "pack%s" rightmouseup', container_pack)
     mq.delay(10)
-    craftInTradeskillWindow('pack'..container_pack)
+    invSlotContainerPack = 'pack'..container_pack
+    invSlotContainerPackIdx = container_pack
+    craftInTradeskillWindow(invSlotContainerPack, invSlotContainerPackIdx)
     clearCursor()
 end
 
@@ -783,7 +875,7 @@ local function craftAtStation()
     mq.doevents('inuse')
     if not crafting.Status then return end
     if not mq.TLO.Window('TradeskillWnd').Open() then return end
-    craftInTradeskillWindow('Enviro')
+    craftInTradeskillWindow('Enviro', -1)
     clearCursor()
 end
 
@@ -791,7 +883,7 @@ local function craft()
     if not selectedRecipe or not shouldCraft() then crafting.Status = false return end
     if recipes.Stations[mq.TLO.Zone.ShortName()] and recipes.Stations[mq.TLO.Zone.ShortName()][selectedRecipe.Container] then
         if mq.TLO.Window('Enviro').Open() then
-            craftInExperimental('Enviro')
+            craftInExperimental('Enviro', -1)
         else
             craftAtStation()
         end
